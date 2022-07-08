@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@sftp://hongxuanli@211.81.55.143:4762/home/hongxuanli/.conda/envs/torch_python37/bin/python3.7">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/hongxuanli/dir/3D_UNet" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@sftp://root@region-5.autodl.com:54301/root/conda_env/dl_env/bin/python3.6" />
+      </list>
+    </list>
+  </component>
+</project>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="root@region-5.autodl.com:54301 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="autodl">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-5.autodl.com:54301 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/hongxuanli/dir/3D_UNet" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tju143">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
