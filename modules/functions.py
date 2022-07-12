@@ -35,11 +35,18 @@ def dice_loss(pred, target):
 #     loss = 1 - intersection / union
 #     return loss
 
+def bce_loss(pred, target):
+
+    target = target.float()
+    loss = torch.nn.BCEWithLogitsLoss()
+    out = loss(pred, target)
+    return out
+
 def ce_loss(pred, target):
 
     target = target.float()
-    # target = target.squeeze(1)
-    # loss = torch.nn.CrossEntropyLoss(ignore_index=255)
-    loss = torch.nn.BCEWithLogitsLoss()
+    target = target.squeeze(1)
+    target = target.long()
+    loss = torch.nn.CrossEntropyLoss()
     out = loss(pred, target)
     return out

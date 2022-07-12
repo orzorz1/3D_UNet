@@ -13,12 +13,12 @@ from commons.log import make_print_to_file
 np.set_printoptions(threshold=np.inf)
 np.set_printoptions(suppress=True)
 
-def train():
+def predct():
     size = [64, 64, 32]
     batch_size = 1
     model = UNet_3D()
     try:
-        model.load_state_dict(torch.load("UNet_3D-shuffle-29.pth", map_location='cpu'))
+        model.load_state_dict(torch.load("UNet_3D-shuffle-27.pth", map_location='cpu'))
     except FileNotFoundError:
         print("模型不存在")
     else:
@@ -41,7 +41,7 @@ def train():
             print(position)
             batch_x, batch_y = torch.autograd.Variable(batch_x.to(device)), torch.autograd.Variable(batch_y.to(device))
             out = model(batch_x)
-            out = out[0][0].cpu().detach().numpy()
+            out = out[0][2].cpu().detach().numpy()
             predict[position[0]:position[0] + size[0], position[1]:position[1] + size[1], position[2]:position[2] + size[2]] += out
             count[position[0]:position[0] + size[0], position[1]:position[1] + size[1],position[2]:position[2] + size[2]] += np.ones_like(out)
             # out = nn.Sigmoid()(out)
@@ -72,5 +72,5 @@ def train():
 if __name__ == '__main__':
     # make_print_to_file("./")
     torch.cuda.empty_cache()
-    train()
+    predct()
     # os.system("shutdown")

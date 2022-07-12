@@ -28,7 +28,7 @@ class UNet_3D(nn.Module):
         self.right_conv_3 = up.double_conv(256, 128)
         self.deconv_4 = nn.ConvTranspose3d(128, 64, kernel_size=2, stride=2)
         self.right_conv_4 = up.double_conv(128, 64)
-        self.right_conv_5 = nn.Conv3d(64, 1, (3,3,3), padding=1)
+        self.right_conv_5 = nn.Conv3d(64, 3, (3,3,3), padding=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):

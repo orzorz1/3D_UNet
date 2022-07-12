@@ -69,9 +69,10 @@ def read_dataset(path):
 def read_label(path):
     img = nib.load(path)
     img_arr = np.array(img.dataobj)
-    triangle_ufunc1 = np.frompyfunc(set_label, 1, 1)
-    out = triangle_ufunc1(img_arr)
-    out = out.astype(np.float)
+    # triangle_ufunc1 = np.frompyfunc(set_label, 1, 1)
+    # out = triangle_ufunc1(img_arr)
+    # out = out.astype(np.float)
+    out = img_arr
     return out
 
 def get_patchs_from_one_img(img_x, img_y, size, number):
@@ -108,8 +109,8 @@ def get_patches(begin, end, size, seed):
         x = read_dataset(path_x)
         path_y = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=i)
         y = read_label(path_y)
-        x, y = get_patchs_from_one_img(x, y, size, 8)
-        for j in range(8):
+        x, y = get_patchs_from_one_img(x, y, size, 10)
+        for j in range(10):
             patches_x.append(x[j])
             patches_y.append(y[j])
 
@@ -123,9 +124,9 @@ def patch(img_arr, size):
     img_arr = torch.cat((torch.tensor(np.zeros((1, 512, 512, 8)).astype(float)), torch.tensor(img_arr.astype(float))),
                         dim=3).numpy()
     channel, width, height, deep = img_arr.shape
-    for i in range(0, width-patch_size[0]+1, patch_size[0]//4):
-        for j in range(0, height-patch_size[1]+1, patch_size[1]//4):
-            for k in range(0, deep-patch_size[2]+1, patch_size[2]//4):
+    for i in range(0, width-patch_size[0]+1, patch_size[0]//2):
+        for j in range(0, height-patch_size[1]+1, patch_size[1]//2):
+            for k in range(0, deep-patch_size[2]+1, patch_size[2]//2):
                 patch = []
                 patch.append(img_arr[:,i:i+patch_size[0],j:j+patch_size[1],k:k+patch_size[2]])
                 patch.append([i, j, k])
@@ -140,7 +141,7 @@ class load_dataset_one(Dataset):
         path_y = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
         y = read_label(path_y)
         patch_size = [64, 64, 32]
-        patchs_x, patchs_y = get_patchs_from_one_img(x, y, patch_size, 120)
+        patchs_x, patchs_y = get_patchs_from_one_img(x, y, patch_size, 30)
         print("数据加载完成，shape：", patchs_y.shape)
         imgs = []
         for i in range(patchs_x.shape[0]):

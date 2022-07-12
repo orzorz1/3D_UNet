@@ -16,11 +16,11 @@ np.set_printoptions(suppress=True)
 def train():
     loss_train = []
     loss_val = []
-    batch_size = 12
+    batch_size = 15
     epochs = 50
     model = UNet_3D()
     try:
-        model.load_state_dict(torch.load("UNet_3D-shuffle-14.pth", map_location='cpu'))
+        model.load_state_dict(torch.load("UNet_3D-shuffle-20.pth", map_location='cpu'))
     except FileNotFoundError:
         print("模型不存在")
     else:
@@ -30,10 +30,10 @@ def train():
     torchsummary.summary(model, (1,64,64,32), batch_size=batch_size, device="cuda")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 40], 0.1)
-    for i in range(15,30):
+    for i in range(21,31):
         print("训练进度：{index}/30".format(index=i))
-        dataset = load_dataset(17, 30, i)
-        val_data = load_dataset_one(16)
+        dataset = load_dataset(1, 90, i)
+        val_data = load_dataset_one(101)
         train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
         val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
         for epoch in range(epochs):
@@ -67,10 +67,14 @@ def train():
                 # loss, l, n = dice_loss(out, batch_y)
                 loss = ce_loss(out, batch_y)
                 eval_loss += loss.item()
-                if batch == 8 and (epoch == 49 or epoch == 29 or epoch == 9):
+                if batch == 2 and (epoch == 49 or epoch == 29 or epoch == 9):
                     save_nii(batch_x.cpu().numpy().astype(np.int16)[0][0],'{name}-{e}X'.format(name=i, e=epoch+1))
                     save_nii(batch_y.cpu().numpy().astype(np.int16)[0][0],'{name}-{e}Y'.format(name=i, e=epoch+1))
-                    save_nii(out.cpu().detach().numpy().astype(np.int16)[0][0], '{name}-{e}Out'.format(name=i, e=epoch+1))
+                    out = np.around(nn.Softmax(dim=1)(out).cpu().detach().numpy()[0])
+                    save_nii(out[0], '{name}-{e}Out0'.format(name=i, e=epoch+1))
+                    save_nii(out[1], '{name}-{e}Out1'.format(name=i, e=epoch+1))
+                    save_nii(out[2], '{name}-{e}Out2'.format(name=i, e=epoch+1))
+
             print('Val Loss: %.6f' % (eval_loss / (math.ceil(len(dataset) / batch_size))))
             loss_val.append((eval_loss / (math.ceil(len(dataset) / batch_size))))
         torch.save(model.state_dict(), "UNet_3D-shuffle-{i}.pth".format(i=i))
