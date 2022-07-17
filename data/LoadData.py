@@ -124,9 +124,9 @@ def patch(img_arr, size):
     img_arr = torch.cat((torch.tensor(np.zeros((1, 512, 512, 8)).astype(float)), torch.tensor(img_arr.astype(float))),
                         dim=3).numpy()
     channel, width, height, deep = img_arr.shape
-    for i in range(0, width-patch_size[0]+1, patch_size[0]//2):
-        for j in range(0, height-patch_size[1]+1, patch_size[1]//2):
-            for k in range(0, deep-patch_size[2]+1, patch_size[2]//2):
+    for i in range(0, width-patch_size[0]+1, patch_size[0]//4):
+        for j in range(0, height-patch_size[1]+1, patch_size[1]//4):
+            for k in range(0, deep-patch_size[2]+1, patch_size[2]//4):
                 patch = []
                 patch.append(img_arr[:,i:i+patch_size[0],j:j+patch_size[1],k:k+patch_size[2]])
                 patch.append([i, j, k])

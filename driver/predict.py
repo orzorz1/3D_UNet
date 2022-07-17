@@ -41,9 +41,12 @@ def predct():
             print(position)
             batch_x, batch_y = torch.autograd.Variable(batch_x.to(device)), torch.autograd.Variable(batch_y.to(device))
             out = model(batch_x)
-            out = out[0][2].cpu().detach().numpy()
-            predict[position[0]:position[0] + size[0], position[1]:position[1] + size[1], position[2]:position[2] + size[2]] += out
-            count[position[0]:position[0] + size[0], position[1]:position[1] + size[1],position[2]:position[2] + size[2]] += np.ones_like(out)
+            # out = np.around(nn.Softmax(dim=1)(out).cpu().detach().numpy()[0])
+            # out = out[1]
+            # out = torch.max(nn.Softmax(dim=1)(out), 1)[1].cpu().detach().numpy()[0]
+            out = out.cpu().detach().numpu()[0]
+            predict[0:3, position[0]:position[0] + size[0], position[1]:position[1] + size[1], position[2]:position[2] + size[2]] += out
+            count[0:3, position[0]:position[0] + size[0], position[1]:position[1] + size[1],position[2]:position[2] + size[2]] += np.ones_like(out)
             # out = nn.Sigmoid()(out)
             # if l != 0:
             #     # print("√", l, end="  ")
@@ -61,8 +64,10 @@ def predct():
 
         pre = pre[:,:,8:129]
         print(pre.shape)
+        pre = torch.tensor(pre)
+        pre = torch.max(nn.Softmax(dim=1)(pre), 1)[1].cpu().detach().numpy()
 
-        save_nii(pre.astype(np.int16), "predict-{index}".format(index = index), index)
+        save_nii(pre.astype(np.int16), "pre-{index}".format(index = index), index)
 
 
 
@@ -73,4 +78,4 @@ if __name__ == '__main__':
     # make_print_to_file("./")
     torch.cuda.empty_cache()
     predct()
-    # os.system("shutdown")
+    os.system("shutdown")
