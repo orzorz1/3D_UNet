@@ -2,4 +2,6 @@ save
 dataset
 data/*.nii
 driver/*.nii
+driver/*.pth
+
 

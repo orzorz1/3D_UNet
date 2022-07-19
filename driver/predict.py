@@ -26,13 +26,13 @@ def predct():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    for index in range(101,106):
+    for index in range(102,106):
         val_data = load_dataset_test(index)
         val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
         model.eval()
         # path_x = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
         # x = read_dataset(path_x)
-        x = np.zeros((512, 512, 128))
+        x = np.zeros((3, 512, 512, 128))
         predict = np.zeros_like(x)
         count = np.zeros_like(x)
         for batch, (batch_x, batch_y, position) in enumerate(val_loader):
@@ -44,7 +44,7 @@ def predct():
             # out = np.around(nn.Softmax(dim=1)(out).cpu().detach().numpy()[0])
             # out = out[1]
             # out = torch.max(nn.Softmax(dim=1)(out), 1)[1].cpu().detach().numpy()[0]
-            out = out.cpu().detach().numpu()[0]
+            out = out.cpu().detach().numpy()[0]
             predict[0:3, position[0]:position[0] + size[0], position[1]:position[1] + size[1], position[2]:position[2] + size[2]] += out
             count[0:3, position[0]:position[0] + size[0], position[1]:position[1] + size[1],position[2]:position[2] + size[2]] += np.ones_like(out)
             # out = nn.Sigmoid()(out)
@@ -62,10 +62,11 @@ def predct():
 
         pre= predict / count
 
-        pre = pre[:,:,8:129]
+        pre = pre[:,:,:,8:128]
         print(pre.shape)
         pre = torch.tensor(pre)
-        pre = torch.max(nn.Softmax(dim=1)(pre), 1)[1].cpu().detach().numpy()
+        pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
+        # pre=pre.transpose(1,2,3,0)
 
         save_nii(pre.astype(np.int16), "pre-{index}".format(index = index), index)
 
@@ -78,4 +79,4 @@ if __name__ == '__main__':
     # make_print_to_file("./")
     torch.cuda.empty_cache()
     predct()
-    os.system("shutdown")
+    # os.system("shutdown")
