@@ -4,51 +4,41 @@ from commons.plot import save_nii
 import nibabel as nib
 import torch
 from torch.utils.data import Dataset
-from commons.plot import *
 import torch.nn as nn
 import random
-np.set_printoptions(threshold=np.inf)
-np.set_printoptions(suppress=True)
+
 
 def get_bounding_box(img):
     width, height, deep = img.shape
     box = [0, 0, 0, 0, 0, 0]  # [width_low, width_high, height_low, height_high, deep_low, deep_high]
+    flag = 0
     for i in range(width):
         img_x = img[i, :, :]
         a = numpy.ones(img_x.shape)
-        if (img_x * a).sum() != 0:
+        if flag == 0 and (img_x * a).sum() != 0:
             box[0] = i
-            break
-    for i in range(width):
-        img_x = img[width-i-1, :, :]
-        a = numpy.ones(img_x.shape)
-        if (img_x * a).sum() != 0:
-            box[1] = width-i-1
-            break
+            flag = 1
+        if flag == 1 and (img_x * a).sum() == 0:
+            box[1] = i
+            flag = 0
     for i in range(height):
         img_y = img[:, i, :]
         a = numpy.ones(img_y.shape)
-        if (img_y * a).sum() != 0:
+        if flag == 0 and (img_y * a).sum() != 0:
             box[2] = i
-            break
-    for i in range(height):
-        img_y = img[:, height-i-1, :]
-        a = numpy.ones(img_y.shape)
-        if (img_y * a).sum() != 0:
-            box[3] = height-i-1
-            break
+            flag = 1
+        if flag == 1 and (img_y * a).sum() == 0:
+            box[3] = i
+            flag = 0
     for i in range(deep):
         img_z = img[:, :, i]
         a = numpy.ones(img_z.shape)
-        if (img_z * a).sum() != 0:
+        if flag == 0 and (img_z * a).sum() != 0:
             box[4] = i
-            break
-    for i in range(deep):
-        img_z = img[:, :, deep-i-1]
-        a = numpy.ones(img_z.shape)
-        if (img_z * a).sum() != 0:
-            box[5] = deep-i-1
-            break
+            flag = 1
+        if flag == 1 and (img_z * a).sum() == 0:
+            box[5] = i
+            flag = 0
     return box
 
 
@@ -90,10 +80,6 @@ def get_patchs_from_one_img(img_x, img_y, patch_size, number):
     patchs_x = []
     patchs_y = []
     box = get_bounding_box(img_y)
-    # triangle_ufunc1 = np.frompyfunc(set_label, 1, 1)
-    # out = triangle_ufunc1(img_y)
-    # out = out.astype(np.float)
-    # box = get_bounding_box(out)
     width, height, deep = img_y.shape
     verte_range = [max(box[0]-patch_size[0], 0), min(box[1], width-patch_size[0]),
                    max(box[2]-patch_size[1], 0), min(box[3], height-patch_size[1]),
@@ -120,23 +106,15 @@ def get_patches(begin, end, patch_size, seed):
     l =  [x for x in range(begin, end+1)]
     random.shuffle(l)
     for i in l:
-        path_x = "./dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz".format(index=i)
+        path_x = "../dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz".format(index=i)
         x = read_dataset(path_x)
-        path_y = "./dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=i)
+        path_y = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=i)
         y = read_label(path_y)
-        x1, y1 = get_patchs_from_one_img(x, y, patch_size, 10)
+        x, y = get_patchs_from_one_img(x, y, patch_size, 10)
         for j in range(10):
-            patches_x.append(x1[j])
-            patches_y.append(y1[j])
-        # x2 = np.array(mean_patch(reshape(x), patch_size, 1))
-        # y2 = np.array(mean_patch(reshape(y), patch_size, 1))
-        # permutation = np.random.permutation(x2.shape[0])
-        # x2 = x2[permutation]
-        # y2 = y2[permutation]
-        # for j in range(10):
-        #     x2[j][0] = x2[j][0].astype(np.float32)
-        #     patches_x.append(x2[j])
-        #     patches_y.append(y2[j][0])
+            patches_x.append(x[j])
+            patches_y.append(y[j])
+
     patches_x = np.array(patches_x)
     patches_y = np.array(patches_y)
     return patches_x, patches_y
@@ -144,9 +122,9 @@ def get_patches(begin, end, patch_size, seed):
 
 class load_dataset_one(Dataset):
     def __init__(self, index, patch_size):
-        path_x = "./dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz".format(index=index)
+        path_x = "../dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz".format(index=index)
         x = read_dataset(path_x)
-        path_y = "./dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
+        path_y = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
         y = read_label(path_y)
         patchs_x, patchs_y = get_patchs_from_one_img(x, y, patch_size, 30)
         print("数据加载完成，shape：", patchs_y.shape)
@@ -167,10 +145,6 @@ class load_dataset_one(Dataset):
 
 class load_dataset(Dataset):
     def __init__(self, begin, end, seed, patch_size):
-        """
-
-        :rtype: object
-        """
         patchs_x, patchs_y = get_patches(begin, end, patch_size, seed)
         print("数据加载完成，shape：", patchs_y.shape)
         imgs = []
@@ -202,14 +176,14 @@ def mean_patch(img_arr, size, overlap_factor):
                 patch.append(img_arr[:,i:i+patch_size[0],j:j+patch_size[1],k:k+patch_size[2]])
                 patch.append([i, j, k])
                 patchs.append(patch) #patchs[index][0]为patch，patchs[index][1]为patch在原始图像中的位置
-    return np.array(patchs)
+    return patchs
 
 class load_dataset_test(Dataset):
     def __init__(self, index, patch_size):
-        path_x = "./dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz".format(index=index)
+        path_x = "../dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz".format(index=index)
         x = read_dataset(path_x)
         x = reshape(x)
-        path_y = "./dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
+        path_y = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
         y = read_label(path_y)
         y = reshape(y)
         patchs_x = mean_patch(x, patch_size, 4)

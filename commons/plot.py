@@ -14,7 +14,7 @@ def printXandY(out, label):
     plt.show()
 
 def save_nii(img_arr, name, index=1):
-    img = nib.load('../dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz'.format(index=index))
+    img = nib.load('./dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz'.format(index=index))
     img_affine = img.affine
     new_img = nib.Nifti1Image(img_arr, img_affine)
     nib.save(new_img, "{name}.nii".format(name=name))

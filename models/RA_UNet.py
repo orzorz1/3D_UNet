@@ -31,7 +31,7 @@ class RA_UNet_2(nn.Module):
         self.res10 = ResidualBlock3D(96,32)
         self.up5 = nn.Upsample(scale_factor=2)
         self.conv2 = nn.Conv3d(64,32,(3,3,3),padding=1)
-        self.conv3 = nn.Conv3d(32,1,(3,3,3),padding=1)
+        self.conv3 = nn.Conv3d(32,3,(3,3,3),padding=1)
 
     def forward(self, input):
         conv1 = self.conv1(input)

@@ -25,7 +25,7 @@ class BaseTrainHelper(object):
         loss_train = []
         loss_val = []
         patch_size = self.patch_size
-        batch_size = 4
+        batch_size = 8
         epochs = 50
         model = self.model()
         try:
@@ -36,12 +36,12 @@ class BaseTrainHelper(object):
             print("加载模型成功")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
-        # torchsummary.summary(model, (1,128,128,32), batch_size=batch_size, device="cuda")
+        torchsummary.summary(model, (1,128,128,32), batch_size=batch_size, device="cuda")
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 40], 0.1)
-        for i in range(9,11):
-            print("训练进度：{index}/10".format(index=i))
-            dataset = load_dataset((i-1)*9+1, i*9, i, patch_size)
+        for i in range(9,15):
+            print("训练进度：{index}/15".format(index=i))
+            dataset = load_dataset(1, 90, i, patch_size)
             val_data = load_dataset_one(91, patch_size)
             train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
             val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
@@ -83,7 +83,7 @@ class BaseTrainHelper(object):
 
                 print('Val Loss: %.6f' % (eval_loss / (math.ceil(len(dataset) / batch_size))))
                 loss_val.append((eval_loss / (math.ceil(len(dataset) / batch_size))))
-            torch.save(model.state_dict(), "3DUnet-128-a-{i}.pth".format(i=i))
+            torch.save(model.state_dict(), "RA-64-{i}.pth".format(i=i))
             draw1(loss_train, "{i}-train".format(i=i))
             draw1(loss_val, "{i}-val".format(i=i))
             print(loss_train)
@@ -91,7 +91,7 @@ class BaseTrainHelper(object):
 
     def predct(self, begin, end, model_load):
         patch_size = self.patch_size
-        batch_size = 1
+        batch_size = 8
         model = self.model()
         try:
             model.load_state_dict(torch.load(model_load, map_location='cpu'))
@@ -103,6 +103,7 @@ class BaseTrainHelper(object):
         model.to(device)
 
         for index in range(begin, end+1):
+            print("predicting {i}".format(i=index))
             val_data = load_dataset_test(index, patch_size)
             val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
             model.eval()
@@ -146,12 +147,14 @@ class BaseTrainHelper(object):
             pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
             # pre=pre.transpose(1,2,3,0)
 
-            save_nii(pre.astype(np.int16), "UNet3D-128-pre-{index}".format(index=index), index)
+            save_nii(pre.astype(np.int16), "RA-64-pre-{index}".format(index=index), index)
 
 if __name__ == '__main__':
-    # make_print_to_file("./")
+    make_print_to_file("./")
     torch.cuda.empty_cache()
-    NetWork = BaseTrainHelper(UNet_3D, [128,128,32])
-    # NetWork.train("3DUnet-128-a-8.pth")
-    NetWork.predct(91, 91, "3DUnet-128-a-8.pth")
+    NetWork = BaseTrainHelper(RA_UNet_2, [128,128,32])
+    NetWork.train("RA-128-9.pth")
+    # NetWork.predct(91, 92, "RA-64-30.pth")
+    # NetWork.predct(94, 100, "RA-64-30.pth")
+
     os.system("shutdown")

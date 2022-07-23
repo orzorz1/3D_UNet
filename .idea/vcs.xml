@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/commons/surface-distance" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/driver/3D_UNet/commons/surface-distance" vcs="Git" />
   </component>
 </project>
