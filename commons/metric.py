@@ -4,7 +4,7 @@ import numpy as np
 import nibabel as nib
 import torch
 
--
+
 def set_label(x):
     if x != 2:
         x = 0
@@ -163,7 +163,7 @@ metric = {"Dice": dice_coef,
 for key, value in metric.items():
     print(key)
     for index in range(91,101):
-        path_x = "../RA-64-pre-{index}.nii".format(index=index)
+        path_x = "../U3D-128-pre-{index}.nii".format(index=index)
         x = read_nii(path_x)
         x = torch.tensor(x)
         path_y = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)

@@ -112,32 +112,22 @@ class BaseTrainHelper(object):
             x = np.zeros((3, 512, 512, 128))
             predict = np.zeros_like(x)
             count = np.zeros_like(x)
-            for batch, (batch_x, batch_y, position) in enumerate(val_loader):
-                for i in range(len(position)):
-                    position[i] = position[i].cpu().numpy().tolist()[0]
-                print(position)
+            for batch, (batch_x, batch_y, p) in enumerate(val_loader):
+                print(p)
                 batch_x, batch_y = torch.autograd.Variable(batch_x.to(device)), torch.autograd.Variable(
                     batch_y.to(device))
                 out = model(batch_x)
-                # out = np.around(nn.Softmax(dim=1)(out).cpu().detach().numpy()[0])
-                # out = out[1]
-                # out = torch.max(nn.Softmax(dim=1)(out), 1)[1].cpu().detach().numpy()[0]
-                out = out.cpu().detach().numpy()[0]
-                predict[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
-                position[2]:position[2] + patch_size[2]] += out
-                count[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
-                position[2]:position[2] + patch_size[2]] += np.ones_like(out)
-                # out = nn.Sigmoid()(out)
-                # if l != 0:
-                #     # print("√", l, end="  ")
-                #         save_nii(batch_x.cpu().numpy().astype(np.int16)[n][0],
-                #                  '{i}-X-{l}'.format(i=i, l=loss))
-                #         save_nii(batch_y.cpu().numpy().astype(np.int16)[n][0],
-                #                  '{i}-Y-{l}'.format(i=i, l=loss))
-                #         save_nii(out.cpu().detach().numpy().astype(np.int16)[n][0],
-                #                  '{i}-Out-{l}'.format(i=i, l=loss))
+                out = out.cpu().detach().numpy()
+                for i in range(out.shape[0]):
+                    position = [0, 0, 0]
+                    o = out[i]
+                    for j in range(len(p)):
+                        position[j] = p[j].cpu().numpy().tolist()[i]
+                    predict[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
+                    position[2]:position[2] + patch_size[2]] += o
+                    count[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
+                    position[2]:position[2] + patch_size[2]] += np.ones_like(o)
 
-                # pre.append(out.cpu().detach().numpy().astype(np.int64)[0][0].tolist())
 
             pre = predict / count
 
@@ -147,14 +137,14 @@ class BaseTrainHelper(object):
             pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
             # pre=pre.transpose(1,2,3,0)
 
-            save_nii(pre.astype(np.int16), "RA-64-pre-{index}".format(index=index), index)
+            save_nii(pre.astype(np.int16), "U3D-128-pre-{index}".format(index=index), index)
 
 if __name__ == '__main__':
-    make_print_to_file("./")
+    # make_print_to_file("./")
     torch.cuda.empty_cache()
-    NetWork = BaseTrainHelper(RA_UNet_2, [128,128,32])
-    NetWork.train("RA-128-9.pth")
-    # NetWork.predct(91, 92, "RA-64-30.pth")
-    # NetWork.predct(94, 100, "RA-64-30.pth")
+    NetWork = BaseTrainHelper(UNet_3D, [128,128,32])
+    # NetWork.train("RA-128-14.pth")
+    NetWork.predct(91, 92, "./save/3DUnet-128-a-10.pth")
+    NetWork.predct(94, 100, "./save/3DUnet-128-a-10.pth")
 
     os.system("shutdown")

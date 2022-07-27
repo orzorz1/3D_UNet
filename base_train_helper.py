@@ -39,9 +39,9 @@ class BaseTrainHelper(object):
         torchsummary.summary(model, (1,128,128,32), batch_size=batch_size, device="cuda")
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 40], 0.1)
-        for i in range(1,10):
-            print("训练进度：{index}/30".format(index=i))
-            dataset = load_dataset((i-1)*9+1, i*9, i, patch_size)
+        for i in range(9,15):
+            print("训练进度：{index}/15".format(index=i))
+            dataset = load_dataset(1, 90, i, patch_size)
             val_data = load_dataset_one(91, patch_size)
             train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
             val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
@@ -91,7 +91,7 @@ class BaseTrainHelper(object):
 
     def predct(self, begin, end, model_load):
         patch_size = self.patch_size
-        batch_size = 4
+        batch_size = 1
         model = self.model()
         try:
             model.load_state_dict(torch.load(model_load, map_location='cpu'))
@@ -109,50 +109,43 @@ class BaseTrainHelper(object):
             model.eval()
             # path_x = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
             # x = read_dataset(path_x)
-            x = np.zeros((3, 512, 512, 128))
+            # x = np.zeros((3, 512, 512, 128))
+            x = np.zeros((3, 512, 512, 160))
             predict = np.zeros_like(x)
             count = np.zeros_like(x)
-            for batch, (batch_x, batch_y, position) in enumerate(val_loader):
-                for i in range(len(position)):
-                    position[i] = position[i].cpu().numpy().tolist()[0]
-                print(position)
+            for batch, (batch_x, batch_y, p) in enumerate(val_loader):
+                print(p)
                 batch_x, batch_y = torch.autograd.Variable(batch_x.to(device)), torch.autograd.Variable(
                     batch_y.to(device))
                 out = model(batch_x)
-                # out = np.around(nn.Softmax(dim=1)(out).cpu().detach().numpy()[0])
-                # out = out[1]
-                # out = torch.max(nn.Softmax(dim=1)(out), 1)[1].cpu().detach().numpy()[0]
-                out = out.cpu().detach().numpy()[0]
-                predict[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
-                position[2]:position[2] + patch_size[2]] += out
-                count[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
-                position[2]:position[2] + patch_size[2]] += np.ones_like(out)
-                # out = nn.Sigmoid()(out)
-                # if l != 0:
-                #     # print("√", l, end="  ")
-                #         save_nii(batch_x.cpu().numpy().astype(np.int16)[n][0],
-                #                  '{i}-X-{l}'.format(i=i, l=loss))
-                #         save_nii(batch_y.cpu().numpy().astype(np.int16)[n][0],
-                #                  '{i}-Y-{l}'.format(i=i, l=loss))
-                #         save_nii(out.cpu().detach().numpy().astype(np.int16)[n][0],
-                #                  '{i}-Out-{l}'.format(i=i, l=loss))
+                out = out.cpu().detach().numpy()
+                for i in range(out.shape[0]):
+                    position = [0, 0, 0]
+                    o = out[i]
+                    for j in range(len(p)):
+                        position[j] = p[j].cpu().numpy().tolist()[i]
+                    predict[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
+                    position[2]:position[2] + patch_size[2]] += o
+                    count[0:3, position[0]:position[0] + patch_size[0], position[1]:position[1] + patch_size[1],
+                    position[2]:position[2] + patch_size[2]] += np.ones_like(o)
 
-                # pre.append(out.cpu().detach().numpy().astype(np.int64)[0][0].tolist())
 
             pre = predict / count
 
-            pre = pre[:, :, :, 8:128]
+            # pre = pre[:, :, :, 8:128]
             print(pre.shape)
             pre = torch.tensor(pre)
             pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
             # pre=pre.transpose(1,2,3,0)
 
-            save_nii(pre.astype(np.int16), "UNet3D-128-pre-{index}".format(index=index), index)
+            save_nii(pre.astype(np.int16), "U3D-128-pre-{index}".format(index=index), index)
 
 if __name__ == '__main__':
-    make_print_to_file("./")
+    # make_print_to_file("./")
     torch.cuda.empty_cache()
-    NetWork = BaseTrainHelper(RA_UNet_2, [128,128,32])
-    NetWork.train()
-    # NetWork.predct(94, 100, "3DUnet-128-a-10.pth")
-    os.system("shutdown")
+    NetWork = BaseTrainHelper(UNet_3D, [128,128,32])
+    # NetWork.train("RA-128-14.pth")
+    NetWork.predct(93, 93, "./save/3DUnet-128-a-10.pth")
+    # NetWork.predct(94, 100, "RA-128-14.pth")
+
+    # os.system("shutdown")
