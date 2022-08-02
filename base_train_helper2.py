@@ -5,7 +5,7 @@ from models.UNet_3D import UNet_3D
 from models.RA_UNet import RA_UNet_2
 from modules.functions import dice_loss, ce_loss
 from commons.plot import save_nii, draw, draw1
-from data.LoadData import *
+from data.LoadData0 import *
 from torch.utils.data import DataLoader
 import torch
 import math
@@ -39,9 +39,9 @@ class BaseTrainHelper(object):
         torchsummary.summary(model, (1,128,128,32), batch_size=batch_size, device="cuda")
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 40], 0.1)
-        for i in range(9,15):
-            print("训练进度：{index}/15".format(index=i))
-            dataset = load_dataset(1, 90, i, patch_size)
+        for i in range(6,11):
+            print("训练进度：{index}/10".format(index=i))
+            dataset = load_dataset((i-6)*18+1, (i-5)*18, i, patch_size)
             val_data = load_dataset_one(91, patch_size)
             train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
             val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
@@ -83,7 +83,7 @@ class BaseTrainHelper(object):
 
                 print('Val Loss: %.6f' % (eval_loss / (math.ceil(len(dataset) / batch_size))))
                 loss_val.append((eval_loss / (math.ceil(len(dataset) / batch_size))))
-            torch.save(model.state_dict(), "RA-64-{i}.pth".format(i=i))
+            torch.save(model.state_dict(), "RA-128-etz-{i}.pth".format(i=i))
             draw1(loss_train, "{i}-train".format(i=i))
             draw1(loss_val, "{i}-val".format(i=i))
             print(loss_train)
@@ -131,20 +131,20 @@ class BaseTrainHelper(object):
 
             pre = predict / count
 
-            pre = pre[:, :, :, 8:128]
+            pre = pre[:, :, :, 14:64]
             print(pre.shape)
             pre = torch.tensor(pre)
             pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
             # pre=pre.transpose(1,2,3,0)
 
-            save_nii(pre.astype(np.int16), "U3D-128-pre-{index}".format(index=index), index)
+            save_nii(pre.astype(np.int16), "RA-128etz-pre1-{index}".format(index=index), index)
 
 if __name__ == '__main__':
     # make_print_to_file("./")
     torch.cuda.empty_cache()
-    NetWork = BaseTrainHelper(UNet_3D, [128,128,32])
-    # NetWork.train("RA-128-14.pth")
-    NetWork.predct(91, 92, "./save/3DUnet-128-a-10.pth")
-    NetWork.predct(94, 100, "./save/3DUnet-128-a-10.pth")
+    NetWork = BaseTrainHelper(RA_UNet_2, [128,128,32])
+    # NetWork.train("RA-128-etz-5.pth")
+    NetWork.predct(91, 92, "./RA-128-etz-10.pth")
+    # NetWork.predct(94, 100, "./save/3DUnet-128-a-10.pth")
 
-    os.system("shutdown")
+    # os.system("shutdown")
