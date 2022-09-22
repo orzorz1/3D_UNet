@@ -3,5 +3,7 @@ dataset
 data/*.nii
 driver/*.nii
 driver/*.pth
+driver/*.nii.gz
+driver/*.zip
 
 
