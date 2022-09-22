@@ -150,12 +150,12 @@ def get_ASSD(SR, GT):
 
 metric = {"Dice": dice_coef,
           "Accuracy": get_accuracy,
-          "Jaccard": compute_jaccard,
+          # "Jaccard": compute_jaccard,
           "Sensitivity": get_sensitivity,
           "Specificity": get_specificity,
           "Precision": get_precision,
           # "F1": get_F1,
-          "JS": get_JS,
+          "Jaccard": get_JS,
           # "DC": get_DC,
           "ASSD":get_ASSD
 }

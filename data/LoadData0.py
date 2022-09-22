@@ -124,8 +124,8 @@ def get_patches(begin, end, patch_size, seed):
         x = read_dataset(path_x)
         path_y = "./dataset/crossmoda2022_etz_{index}_Label.nii.gz".format(index=i)
         y = read_label(path_y)
-        x1, y1 = get_patchs_from_one_img(x, y, patch_size, 20)
-        for j in range(20):
+        x1, y1 = get_patchs_from_one_img(x, y, patch_size, 2)
+        for j in range(2):
             patches_x.append(x1[j])
             patches_y.append(y1[j])
         x2 = np.array(mean_patch(reshape(x), patch_size, 1))
@@ -133,7 +133,7 @@ def get_patches(begin, end, patch_size, seed):
         permutation = np.random.permutation(x2.shape[0])
         x2 = x2[permutation]
         y2 = y2[permutation]
-        for j in range(5):
+        for j in range(1):
             x2[j][0] = x2[j][0].astype(np.float32)
             patches_x.append(x2[j])
             patches_y.append(y2[j][0])
@@ -141,16 +141,16 @@ def get_patches(begin, end, patch_size, seed):
         x = read_dataset(path_x)
         path_y = "./dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=i)
         y = read_label(path_y)
-        x1, y1 = get_patchs_from_one_img(x, y, patch_size, 10)
-        for j in range(10):
+        x1, y1 = get_patchs_from_one_img(x, y, patch_size, 2)
+        for j in range(2):
             patches_x.append(x1[j])
             patches_y.append(y1[j])
-        x2 = np.array(mean_patch1(reshape(x), patch_size, 1))
-        y2 = np.array(mean_patch1(reshape(y), patch_size, 1))
+        x2 = np.array(mean_patch(reshape(x), patch_size, 1))
+        y2 = np.array(mean_patch(reshape(y), patch_size, 1))
         permutation = np.random.permutation(x2.shape[0])
         x2 = x2[permutation]
         y2 = y2[permutation]
-        for j in range(5):
+        for j in range(1):
             x2[j][0] = x2[j][0].astype(np.float32)
             patches_x.append(x2[j])
             patches_y.append(y2[j][0])
@@ -209,8 +209,6 @@ class load_dataset(Dataset):
 def mean_patch(img_arr, size, overlap_factor):
     patchs = []
     patch_size = size
-    img_arr = torch.cat((torch.tensor(np.zeros((1, 256, 256, 14)).astype(float)), torch.tensor(img_arr.astype(float))),
-                        dim=3).numpy()
     channel, width, height, deep = img_arr.shape
     for i in range(0, width-patch_size[0]+1, patch_size[0]//overlap_factor):
         for j in range(0, height-patch_size[1]+1, patch_size[1]//overlap_factor):
@@ -219,30 +217,28 @@ def mean_patch(img_arr, size, overlap_factor):
                 patch.append(img_arr[:,i:i+patch_size[0],j:j+patch_size[1],k:k+patch_size[2]])
                 patch.append([i, j, k])
                 patchs.append(patch) #patchs[index][0]为patch，patchs[index][1]为patch在原始图像中的位置
-    return np.array(patchs)
-
-def mean_patch1(img_arr, size, overlap_factor):
-    patchs = []
-    patch_size = size
-    img_arr = torch.cat((torch.tensor(np.zeros((1, 512, 512, 8)).astype(float)), torch.tensor(img_arr.astype(float))),
-                        dim=3).numpy()
-    channel, width, height, deep = img_arr.shape
-    for i in range(0, width-patch_size[0]+1, patch_size[0]//overlap_factor):
-        for j in range(0, height-patch_size[1]+1, patch_size[1]//overlap_factor):
-            for k in range(0, deep-patch_size[2]+1, patch_size[2]//overlap_factor):
-                patch = []
-                patch.append(img_arr[:,i:i+patch_size[0],j:j+patch_size[1],k:k+patch_size[2]])
-                patch.append([i, j, k])
-                patchs.append(patch) #patchs[index][0]为patch，patchs[index][1]为patch在原始图像中的位置
-
+    for k in range(0, deep-patch_size[2]+1, patch_size[2]//overlap_factor):
+        j = height - patch_size[1]
+        for i in range(0, width - patch_size[0] + 1, patch_size[0] // overlap_factor):
+            patch = []
+            patch.append(img_arr[:, i:i + patch_size[0], j:j + patch_size[1], k:k + patch_size[2]])
+            patch.append([i, j, k])
+            patchs.append(patch)
+        i = width - patch_size[0]
+        patch = []
+        patch.append(img_arr[:, i:i + patch_size[0], j:j + patch_size[1], k:k + patch_size[2]])
+        patch.append([i, j, k])
+        patchs.append(patch)
     return np.array(patchs)
 
 class load_dataset_test(Dataset):
     def __init__(self, index, patch_size):
         path_x = "./dataset/crossmoda2022_etz_{index}_ceT1.nii.gz".format(index=index)
+        path_x = "./dataset/validation/crossmoda2021_ldn_{index}_hrT2.nii.gz".format(index=index)
         x = read_dataset(path_x)
         x = reshape(x)
         path_y = "./dataset/crossmoda2022_etz_{index}_Label.nii.gz".format(index=index)
+        path_y = "./dataset/validation/crossmoda2021_ldn_{index}_hrT2.nii.gz".format(index=index)
         y = read_label(path_y)
         y = reshape(y)
         patchs_x = mean_patch(x, patch_size, 4)
@@ -258,7 +254,7 @@ class load_dataset_test(Dataset):
         position = img[1]
         img = np.array(img[0]).astype(float)
         target = np.array(label[0])
-        return torch.from_numpy(img).to(torch.float32), torch.from_numpy(target).long(), position
+        return torch.from_numpy(img).to(torch.float32), 1, position
 
     def __len__(self):
         return len(self.imgs)

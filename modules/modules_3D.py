@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 import numpy as np
 
 class LambdaLayer(nn.Module):
@@ -126,4 +127,33 @@ class AttentionBlock3D(nn.Module):
         output = self.res6(output)
 
         return output
+
+
+class SELayer_3d(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer_3d, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
+        self.linear1 = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True)
+        )
+        self.linear2 = nn.Sequential(
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, X_input):
+        batch_size, channel, _, _, _ = X_input.size()
+
+        y = self.avg_pool(X_input)
+        y = y.view(batch_size, channel)
+
+        # 第1个线性层（含激活函数），即公式中的W1，其维度是[channel, channer/16], 其中16是默认的
+        y = self.linear1(y)
+
+        # 第2个线性层（含激活函数），即公式中的W2，其维度是[channel/16, channer], 其中16是默认的
+        y = self.linear2(y)
+        y = y.view(batch_size, channel, 1, 1, 1)
+
+        return X_input * y.expand_as(X_input)
 

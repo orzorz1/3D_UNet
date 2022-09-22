@@ -4,6 +4,7 @@
     <configs>
       <sshConfig authType="PASSWORD" host="211.81.55.130" id="deee15a8-b14f-443a-80da-d9e8596b3dde" port="22" nameFormat="DESCRIPTIVE" username="hongxuanli" />
       <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="211.81.55.143" id="7614a34b-8ff2-48c5-be44-f3ab1b72fe9d" port="4762" nameFormat="DESCRIPTIVE" username="hongxuanli" />
+      <sshConfig authType="PASSWORD" host="tx" id="e584b990-fdfd-4ea3-9ab6-e9fd8fcfdc5b" port="22" nameFormat="DESCRIPTIVE" />
     </configs>
   </component>
 </project>

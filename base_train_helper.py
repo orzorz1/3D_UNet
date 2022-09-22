@@ -2,6 +2,7 @@ import os
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 import numpy as np
 from models.UNet_3D import UNet_3D
+from models.UNet_3D_SEblock import UNet_3D_SEblock
 from models.RA_UNet import RA_UNet_2
 from modules.functions import dice_loss, ce_loss
 from commons.plot import save_nii, draw, draw1
@@ -39,7 +40,7 @@ class BaseTrainHelper(object):
         torchsummary.summary(model, (1,128,128,32), batch_size=batch_size, device="cuda")
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 40], 0.1)
-        for i in range(9,15):
+        for i in range(1,16):
             print("训练进度：{index}/15".format(index=i))
             dataset = load_dataset(1, 90, i, patch_size)
             val_data = load_dataset_one(91, patch_size)
@@ -83,7 +84,7 @@ class BaseTrainHelper(object):
 
                 print('Val Loss: %.6f' % (eval_loss / (math.ceil(len(dataset) / batch_size))))
                 loss_val.append((eval_loss / (math.ceil(len(dataset) / batch_size))))
-            torch.save(model.state_dict(), "RA-64-{i}.pth".format(i=i))
+            torch.save(model.state_dict(), "U3D-SE-128-{i}.pth".format(i=i))
             draw1(loss_train, "{i}-train".format(i=i))
             draw1(loss_val, "{i}-val".format(i=i))
             print(loss_train)
@@ -91,7 +92,7 @@ class BaseTrainHelper(object):
 
     def predct(self, begin, end, model_load):
         patch_size = self.patch_size
-        batch_size = 1
+        batch_size = 8
         model = self.model()
         try:
             model.load_state_dict(torch.load(model_load, map_location='cpu'))
@@ -109,8 +110,8 @@ class BaseTrainHelper(object):
             model.eval()
             # path_x = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
             # x = read_dataset(path_x)
-            # x = np.zeros((3, 512, 512, 128))
-            x = np.zeros((3, 512, 512, 160))
+            x = np.zeros((3, 512, 512, 128))
+            # x = np.zeros((3, 512, 512, 160))
             predict = np.zeros_like(x)
             count = np.zeros_like(x)
             for batch, (batch_x, batch_y, p) in enumerate(val_loader):
@@ -132,7 +133,7 @@ class BaseTrainHelper(object):
 
             pre = predict / count
 
-            # pre = pre[:, :, :, 8:128]
+            pre = pre[:, :, :, 8:128]
             print(pre.shape)
             pre = torch.tensor(pre)
             pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
@@ -143,9 +144,9 @@ class BaseTrainHelper(object):
 if __name__ == '__main__':
     # make_print_to_file("./")
     torch.cuda.empty_cache()
-    NetWork = BaseTrainHelper(UNet_3D, [128,128,32])
-    # NetWork.train("RA-128-14.pth")
-    NetWork.predct(93, 93, "./save/3DUnet-128-a-10.pth")
+    NetWork = BaseTrainHelper(UNet_3D_SEblock, [128,128,32])
+    NetWork.train("")
+    # NetWork.predct(100, 101, "RA-128-2-15.pth")
     # NetWork.predct(94, 100, "RA-128-14.pth")
 
-    # os.system("shutdown")
+    os.system("shutdown")

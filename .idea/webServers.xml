@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="ff215978-db5c-4042-b85f-5c36e5c1333c" name="audl深圳A012">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="region-5.autodl.com" port="37109" sshConfigId="81540ecb-a32b-45c1-8e06-38b03ccbc673" sshConfig="root@region-5.autodl.com:37109 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

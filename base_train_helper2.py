@@ -39,10 +39,10 @@ class BaseTrainHelper(object):
         torchsummary.summary(model, (1,128,128,32), batch_size=batch_size, device="cuda")
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 40], 0.1)
-        for i in range(6,11):
+        for i in range(9,16):
             print("训练进度：{index}/10".format(index=i))
-            dataset = load_dataset((i-6)*18+1, (i-5)*18, i, patch_size)
-            val_data = load_dataset_one(91, patch_size)
+            dataset = load_dataset(46, 90, i, patch_size)
+            val_data = load_dataset(91, 95, i, patch_size)
             train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
             val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
             for epoch in range(epochs):
@@ -83,7 +83,7 @@ class BaseTrainHelper(object):
 
                 print('Val Loss: %.6f' % (eval_loss / (math.ceil(len(dataset) / batch_size))))
                 loss_val.append((eval_loss / (math.ceil(len(dataset) / batch_size))))
-            torch.save(model.state_dict(), "RA-128-etz-{i}.pth".format(i=i))
+            torch.save(model.state_dict(), "RA-128-2-{i}.pth".format(i=i))
             draw1(loss_train, "{i}-train".format(i=i))
             draw1(loss_val, "{i}-val".format(i=i))
             print(loss_train)
@@ -107,9 +107,9 @@ class BaseTrainHelper(object):
             val_data = load_dataset_test(index, patch_size)
             val_loader = DataLoader(dataset=val_data, batch_size=batch_size)
             model.eval()
-            # path_x = "../dataset/crossmoda2021_ldn_{index}_Label.nii.gz".format(index=index)
-            # x = read_dataset(path_x)
-            x = np.zeros((3, 512, 512, 128))
+            path_x = "./dataset/validation/crossmoda2021_ldn_{index}_hrT2.nii.gz".format(index=index)
+            x1 = read_dataset(path_x)
+            x = np.zeros((3, x1.shape[0], x1.shape[1], x1.shape[2]))
             predict = np.zeros_like(x)
             count = np.zeros_like(x)
             for batch, (batch_x, batch_y, p) in enumerate(val_loader):
@@ -131,20 +131,18 @@ class BaseTrainHelper(object):
 
             pre = predict / count
 
-            pre = pre[:, :, :, 14:64]
             print(pre.shape)
             pre = torch.tensor(pre)
             pre = torch.max(nn.Softmax(dim=0)(pre), 0)[1].cpu().detach().numpy()
             # pre=pre.transpose(1,2,3,0)
-
-            save_nii(pre.astype(np.int16), "RA-128etz-pre1-{index}".format(index=index), index)
+            save_nii(pre.astype(np.int16), "crossmoda2021_ldn_{index}_Label".format(index=index), index)
 
 if __name__ == '__main__':
     # make_print_to_file("./")
     torch.cuda.empty_cache()
     NetWork = BaseTrainHelper(RA_UNet_2, [128,128,32])
-    # NetWork.train("RA-128-etz-5.pth")
-    NetWork.predct(91, 92, "./RA-128-etz-10.pth")
+    # NetWork.train("RA-128-2-8.pth")
+    NetWork.predct(211,215, "RA-128-14.pth")
     # NetWork.predct(94, 100, "./save/3DUnet-128-a-10.pth")
 
-    # os.system("shutdown")
+    os.system("shutdown")

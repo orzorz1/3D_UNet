@@ -15,10 +15,11 @@ def printXandY(out, label):
 
 def save_nii(img_arr, name, index=1):
     # img = nib.load('./dataset/crossmoda2021_ldn_{index}_ceT1.nii.gz'.format(index=index))
-    img = nib.load('./dataset/crossmoda2022_etz_{index}_ceT1.nii.gz'.format(index=index))
+    # img = nib.load('./dataset/crossmoda2022_etz_{index}_ceT1.nii.gz'.format(index=index))
+    img = nib.load('./dataset/validation/crossmoda2021_ldn_{index}_hrT2.nii.gz'.format(index=index))
     img_affine = img.affine
     new_img = nib.Nifti1Image(img_arr, img_affine)
-    nib.save(new_img, "{name}.nii".format(name=name))
+    nib.save(new_img, "{name}.nii.gz".format(name=name))
     # nib.Nifti1Image(img_arr, np.eye(4)).to_filename(f'{name}.nii.gz'.format(name=name))
     # img_arr要为int16的nparray
 
